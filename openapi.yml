@@ -1,0 +1,2765 @@
+openapi: 3.0.3
+info:
+  title: Tiingo API
+  description: |-
+    # Overview
+    Tiingo's APIs are built to be performant, consistent, and also support extensive filters to speed up your development time.
+    
+    Because of this, we hope you will take the time to read the documentation and learn about all of our features, but we also understand you may want to jump right in. So if you want to jump right in, click on any endpoint link, which are located on the sidebar to your left.
+    
+    # Introduction
+    The endpoints are broken up into two different types:
+    
+    1. __REST Endpoints__ which provide a RESTful interface to querying data, especially historical data for end-of-day data feeds.
+    2. __Websocket__ which provide a websocket interface and are used to stream real-time data. If you are looking for access to a raw firehose of data, the websocket endpoint is how you get it.
+    To navigate and see how to query data using each of the above methods, use the sidebar on the left and choose an endpoint that interests you.
+    
+    Additionally, there are a number of third-party packages that interface with our data and make it even easier to get up and running with our data. You can check them out here:
+    
+    
+    # Authentication
+    In order to use the API, you must sign-up to create an account. All accounts are free and if you need higher usage limits, or you have a commercial use case, you can upgrade to the Power and/or Commercial plan.
+    
+    Once you create an account, your account with be assigned an authentication token. This token is used in place of your username & password throughout the API, so keep it safe like you would your password.
+    
+    You can find your API token by clicking [here](https://www.tiingo.com/account/api/token), or to make it easy, your token will be shown below if you are logged in.
+    
+    To see how to use your token to make requests, you can use the code examples throughout the documentation, or check out the section on connecting: [Connecting](https://www.tiingo.com/documentation/general/connecting).
+    
+    # Usage Limits
+    To keep the API affordable to all, each account is given generous rate-limits. We limit based on:
+    
+     - Hourly Requests - Reset every hour.
+     - Daily Requests - Reset every day at midnight EST.
+     - Monthly Bandwidth - Reset the first of every month at midnight EST.
+    
+    We do not rate limit to minute or second, so you are free to make your requests as you desire.
+    
+    The basic, power, and commercial power plans offer different levels of rate limits. To see what these rate limits are, visit the [pricing page](https://www.tiingo.com/pricing).
+    
+    If you need custom limits set you can E-mail our [sales team](https://www.tiingo.com/sales@tiingo.com), who will give you a fair and reasonable price. Chances are, if you've been with us for some time and the request is reasonable, we will increase your limits at no charge. Do not hesitate to reach out, we are here for you.
+    
+    # Response Formats
+    For most of our REST endpoints, we allow you, the user, to choose which format the data data can be returned in. We support two different return formats:
+    
+    - __JSON__ - The data is returned in the JSON data structure. This format allows the most flexibility as we can append meta data as well as debugging data. The downside to this data type is that it requires more bandwidth, which means it may be slower since more data has to be downloaded and parsed by the client side.
+    - __CSV__ - This is a "bare-bones" data return type that is often 4-5x faster than JSON. The data is returned in comma-separated-format, which is helpful when importing the data in spreadsheet programs like Excel.
+    
+    To return data in a particular format, you may pass the format parameter, which can take both "json" and "csv".
+    
+    When browsing the documentation, you will see at the top of the page which return formats are supported.
+    
+    # Symbology
+    Tiingo's symbol format uses dashes ("-") instead of periods (".") to denote share classes. Our API covers both common share classes and preferred share classes. For example Berkshire class A shares would be "BRK-A" and Simon Property Group's Preferred J series shares would be "SPG-P-J".
+    
+    More details can be found on the [Symbology Appendix](https://www.tiingo.com/documentation/appendix/symbology) page and a full list of tickers can be found in [supported_tickers.zip](https://apimedia.tiingo.com/docs/tiingo/daily/supported_tickers.zip), which is updated daily
+  version: 1.0.0
+externalDocs:
+  description: Access Tiingo Offical API Documents
+  url: https://www.tiingo.com/documentation/general/overview
+servers:
+  - url: https://api.tiingo.com
+
+paths:
+  /api/test:
+    get:
+      tags:
+        - Connecting
+      summary: Test API connection with token in URL
+      description: |-
+        Using our REST API is super easy to do. Just use your favorite programming language's web request package and the data will be returned via JSON or CSV.
+        
+        To use the REST API, you must let our server know you have an account. You can do this by passing your API TOKEN.
+
+        Pass the token directly within the request URL.
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Request was successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+      security:
+        - apiKeyQuery: [ ]
+
+  /api/test/header:
+    get:
+      tags:
+        - Connecting
+      summary: Test API connection with token in header
+      description: |-
+        Using our REST API is super easy to do. Just use your favorite programming language's web request package and the data will be returned via JSON or CSV.
+        
+        To use the REST API, you must let our server know you have an account. You can do this by passing your API TOKEN.
+
+        Pass the token in your request headers.
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Request was successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+      security:
+        - apiKeyHeader: [ ]
+
+  /tiingo/daily/{ticker}/prices:
+    get:
+      tags:
+        - End-of-Day Prices
+      summary: End-of-Day Endpoint
+      description: |-
+        Request latest or historical price data for a stock using the ticker symbol.
+        
+        Tiingo's End-of-Day prices use a proprietary error checking framework to help clean data feeds and also help catch missing corporate actions (splits, dividends, and exchange listing changes). Most US Equity prices are available at 5:30 PM EST, however exchanges may send corrections until 8 PM EST. As we obtain corrections, we update prices throughout the evening.
+        
+        Mutual Fund NAVs are available after 12 AM EST. The fields "open", "high", "low", "close" will contain the NAV value for the given day.
+        
+        Both raw prices and adjusted prices are available. The adjustment methodology follows the standard method set forth by "The Center for Research in Security Prices" (CRSP) in this document: [CRSP Calculations](http://www.crsp.com/products/documentation/crsp-calculations). This methodology incorporates both split and dividend adjustments.
+        
+        You can find out about the full product offering on the [Product - End-of-Day](https://www.tiingo.com/products/end-of-day-stock-price-data) page.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset.
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            default: 2012-1-1
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            default: 2016-1-1
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
+        - name: resampleFreq
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ daily, weekly, monthly, annually ]
+            default: daily
+          description: |-
+            Allows resampled values that allow you to choose the values returned as daily, weekly, monthly, or annually values. Note: ONLY DAILY takes into account holidays. All others use standard business days Acceptable values:
+            - daily: Values returned as daily periods, with a holiday calendar.
+            - weekly: Values returned as weekly data, with days ending on Friday.
+            - monthly: Values returned as monthly data, with days ending on the last standard business day (Mon-Fri) of each month.
+            - annually: Values returned as annual data, with days ending on the last standard business day (Mon-Fri) of each year.
+            
+            Note, that if you choose a value in-between the resample period for weekly, monthly, and daily, the start date rolls back to consider the entire period. For example, if you choose to resample weekly, but your "startDate" parameter is set to Wednesday of that week, the startDate will be adjusted to Monday, so the entire week is captured. Another example is if you send a startDate mid-month, we roll back the startDate to the beginning of the month.
+            
+            Similarly, if you provide an endDate, and it's midway through the period, we roll-forward the date to capture the whole period. In the above example, if the end date is set to a Wednesday with a weekly resample, the end date is rolled forward to the Friday of that week.
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: This field allows you to specify the sort direction and which column to sort by. Prepend "-" if you want descending order, otherwise it will be ascending. E.g. sort=date will sort by date in ascending order. sort=-date will sort by date in descending order.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only these columns back.
+      responses:
+        '200':
+          description: Price data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+
+  /tiingo/daily/{ticker}:
+    get:
+      tags:
+        - End-of-Day Prices
+      summary: Meta Endpoint
+      description: |-
+        Our meta information comes from a variety of sources, but is used to help communicate details about an asset in our database to our users.
+
+        __For a daily list of all tickers accessible via Tiingo, please see the following file which is updated daily: [supported_tickers.zip](https://apimedia.tiingo.com/docs/tiingo/daily/supported_tickers.zip)__
+        
+        __Otherwise, to request meta data for a stock, use the following REST endpoint.__
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker related to the asset.
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Meta data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetaDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetaDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/news:
+    get:
+      tags:
+        - News
+      summary: News Endpoint
+      description: |-
+        Tiingo's news feeds are some of the most comprehensive news feeds available. We not only incorporate financial news sites, but also financial blogs - including those of small-time reputable bloggers, and tag them using the latest algos our team has been developing for over a decade. We bring these powerful feeds to you.
+
+        On a typical day, Tiingo adds over 8,000-12,000 articles a day.
+        
+        You can find out about the full product offering on the [Product - News](https://www.tiingo.com/products/news-feed-api) page.
+      parameters:
+        - name: tickers
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: |-
+            A comma-separated list of the tickers requested. When passing via GET parameter (not in URL), use a JSON array, otherwise use a comma-separated list.
+
+            Use the below format if querying directly in the URL
+              - https://api.tiingo.com/tiingo/news?tickers=aapl,googl
+            
+            Otherwise, if passing GET parameters via a request library, use a JSON array like this:
+              - tickers : ['aapl','googl']
+          example:
+            - aapl
+            - googl
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: |-
+            A comma-separated list of the tags requested. When passing via GET parameter (not in URL), use a JSON array, otherwise use a comma-separated list.
+
+            Use the below format if querying directly in the URL
+              - https://api.tiingo.com/tiingo/news?source=bloomberg.com,reuters.com
+            
+            Otherwise, if passing GET parameters via a request library, use a JSON array like this:
+              - source : ['bloomberg.com','reuters.com']
+          example:
+            - bloomberg.com
+            - reuters.com
+        - name: tags
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: A comma-separated list of the tags requested.
+          example:
+            - election
+            - argentina
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: |-
+            If startDate or endDate is not null, historical data will be queried. This filter limits news stories to on or later than the publishedDate (>=). Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: |-
+            If startDate or endDate is not null, historical data will be queried. This filter limits news stories to on or less than the publishedDate (<=). Parameter must be in YYYY-MM-DD format.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: |-
+            The maximum number of news objects to return in the array. The default is 100 and the max is 1000. This is maxed to 1,000 as any more than that tends to lead to longer wait times. If you would like this adjusted, please contact us at [support@tiingo.com](mailto:feeds@tiingo.com).
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: |-
+            This is a "pagination" variable that is often used alongside limit. It returns an array with the results shifted by "offset". For example, when limit is 0 you may get the following:
+
+            0. News Story A
+            1. News Story B
+            2. News Story C
+            3. News Story D
+            
+            
+            When offset is "2" you will receive:
+            
+            0. News Story C
+            1. News Story D
+            2. News Story E
+            3. News Story F
+
+
+            This, when used alongside "limit" allows for pagination and more efficient queries.
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            The field can take either "publishedDate" or "crawlDate". The date field specified will be used to sort the results in descending order. The results can either be sorted by when the news outlet reported the publish time ("datePublished") or when our feeds came across ("crawlDate"). Defaults to "publishedDate" if no value provided
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: News data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NewsResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NewsResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/news/bulk_download:
+    get:
+      tags:
+        - News
+      summary: Bulk Download
+      description: |-
+        To download the entire database, use the following REST endpoints. An "incremental" batchType file is added every evening. At 12am EST a batch process runs saving down all news articles for the past 24 hours.
+
+        Note: Bulk Download can only be opened up to our institutional clients.
+        
+        __For a list of all the bulk download files__
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Bulk download file list request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BulkDownloadFileResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BulkDownloadFileResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/news/bulk_download/{id}:
+    get:
+      tags:
+        - News
+      summary: Bulk Download by Id
+      description: |-
+        To download the entire database, use the following REST endpoints. An "incremental" batchType file is added every evening. At 12am EST a batch process runs saving down all news articles for the past 24 hours.
+
+        Note: Bulk Download can only be opened up to our institutional clients.
+        
+        __To download a specific batch file__
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+          description: |-
+            The unique "id" that corresponds to the batch file you would like to download.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Bulk download request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BulkDownloadFileResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BulkDownloadFileResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/corporate-actions/distributions:
+    get:
+      tags:
+        - Dividends
+      summary: Batch Distribution Data
+      description: |-
+        Use this endpoint to get past, present, and future dividends and distributions. This endpoint will return detailed dividend and distribution data for a given stock, ETF, or Mutual Fund. You will also notice a distribution frequency, this is the declared frequency of the distribution that you can use to customize your calculations to determine yield.
+      parameters:
+        - name: exDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits distributions that have an ex-date on the date passed. Parameter must be in YYYY-MM-DD format.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only these columns back.
+      responses:
+        '200':
+          description: Distribution data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributionDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributionDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/corporate-actions/{ticker}/distributions:
+    get:
+      tags:
+        - Dividends
+      summary: Ticker-specific Distribution Data
+      description: |-
+        This endpoint is similar to the batch endpoint, but allows you to specify a specific ticker to limit the query and also provide historical distribution timeseries data for a ticker as well. Stocks, ETFs, and Mutual Funds are supported.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset you would like distribution data for.
+        - name: startExDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits distributions that have an ex-date >= on the date passed. Parameter must be in YYYY-MM-DD format.
+        - name: endExDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits distributions that have an ex-date <= on the date passed. Parameter must be in YYYY-MM-DD format.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only these columns back.
+      responses:
+        '200':
+          description: Distribution data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributionDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributionDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/corporate-actions/{ticker}/distribution-yield:
+    get:
+      tags:
+        - Dividends
+      summary: Historical Yield Endpoint
+      description: |-
+        Use this endpoint to obtain the current and historical information about yield data for the given Stock, ETF, or Mutual Fund. Please note that we will continue to add new daily metrics, so the fields will change throughout time. We recommend you __do not__ make parsing code that requires columns or fields to be in a particular order. If you do require this, please use the __columns__ request parameter to ensure constant output, even if we add columns. For example, __columns=trailingDiv1Y__ will always ensure only that single field is returned in that exact order.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset you would like yield data for.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only these columns back.
+      responses:
+        '200':
+          description: Distribution yield data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributionYieldDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributionYieldDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/corporate-actions/splits:
+    get:
+      tags:
+        - Splits
+      summary: Batch Split Data
+      description: |-
+        Use this endpoint to get past, present, and future splits. This endpoint will return detailed split data for a given stock, ETF, or Mutual Fund. You will also notice split status - this can either be active ("a") or cancelled ("c").
+      parameters:
+        - name: exDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits splits that have an ex-date on the date passed. Parameter must be in YYYY-MM-DD format.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only these columns back.
+      responses:
+        '200':
+          description: Split data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SplitDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SplitDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/corporate-actions/{ticker}/splits:
+    get:
+      tags:
+        - Splits
+      summary: Ticker-specific Split Data
+      description: |-
+        This endpoint is similar to the batch endpoint, but allows you to specify a specific ticker to limit the query and also provide historical split timeseries data for a ticker as well. Stocks, ETFs, and Mutual Funds are supported.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset you would like split data for.
+        - name: startExDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits splits that have an ex-date >= on the date passed. Parameter must be in YYYY-MM-DD format.
+        - name: endExDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits splits that have an ex-date <= on the date passed. Parameter must be in YYYY-MM-DD format.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only these columns back.
+      responses:
+        '200':
+          description: Split data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SplitDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SplitDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/fundamentals/definitions:
+    get:
+      tags:
+        - Fundamentals
+      summary: Definitions Data
+      description: |-
+        This endpoint can be used to check which the various fields available in the fundamentals endpoint. As we add more indicators, the output of this endpoint will change to reflect the addition of indicators.
+      parameters:
+        - name: tickers
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: |-
+            Specific tickers to return meta data for. If no string passed, will return meta data for all available tickers. Can either be a single ticker, a comma-separated list of tickers, or an array of strings (string[]).
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Fundamental definitions request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FundamentalDefinitionResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FundamentalDefinitionResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/fundamentals/{ticker}/statements:
+    get:
+      tags:
+        - Fundamentals
+      summary: Statement Data Endpoint
+      description: |-
+        This endpoint returns data that is extracted from quarterly and annual statements.
+
+        With this endpoint, the JSON (default) and CSV formats do share some differences in data strcture. The JSON data is nested, whereas the CSV format, by necessity, is a 2-D, flat structure. The data is the same, so choose a format that is simplest for you to digest.
+
+        Additionally, please ensure your code can handle new indicators as we will be continually updating these end points as we obtain new information and add new metrics.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset.
+        - name: asReported
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: |-
+            When false (default), the endpoint will return the most recent data, including any revisions for the reporting period. The dates will correspond to the fiscal end of the quarter or year. When true, the endpoint will return the data as it was reported on the release date. Similarly, the date will correspond to the date the filings were posted on the SEC.
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            This field allows you to specify the sort direction and which column to sort by. Prepend "-" if you want descending order, otherwise it will be ascending. E.g. sort=date will sort by date in ascending order. sort=-date will sort by date in descending order. NOTE: For Fundamentals statement only the "date" field may be sorted upon.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Statement data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatementDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatementDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/fundamentals/{ticker}/daily:
+    get:
+      tags:
+        - Fundamentals
+      summary: Daily Data
+      description: |-
+        While statement data covers quarterly and annual reporting, some metrics that rely on price update daily, for example Market Capitalization, P/E Ratios, P/B Ratios, etc. This endpoint covers daily metrics.
+        
+        This endpoint is different than others in that the different daily metrics are "columns". Please note that we will continue to add new daily metrics, so the fields will change throughout time. We recommend you __do not__ make parsing code that requires columns or fields to be in a particular order. If you do require this, please use the columns request parameter to ensure constant output, even if we add columns. For example, __columns=marketCap,peRatio__ will always ensure only those two fields are returned in that exact order.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset.
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            This field allows you to specify the sort direction and which column to sort by. Prepend "-" if you want descending order, otherwise it will be ascending. E.g. sort=date will sort by date in ascending order. sort=-date will sort by date in descending order.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only these columns back.
+      responses:
+        '200':
+          description: Daily data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyDataResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyDataResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/fundamentals/meta:
+    get:
+      tags:
+        - Fundamentals
+      summary: Meta Data
+      description: |-
+        This endpoint can be used to check which tickers have been updated with new fundamental data.
+        
+        Like the endpoints above, as we add new meta data about companies and their fundamentals, this endpoint will change output. Please do not code with the assumption that column orders will always be maintained. If you must, please pass the __columns__ parameter to ensure the output maintains its column order. For example, __columns=ticker,name__ will always ensure those columns are returned in that exact order.
+      parameters:
+        - name: tickers
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: |-
+            Specific tickers to return meta data for. If no string passed, will return meta data for all available tickers. Can either be a single ticker, a comma-separated list of tickers, or an array of strings (string[]).
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Meta data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FundamentalMetaResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FundamentalMetaResponse'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /tiingo/utilities/search/{query}:
+    get:
+      tags:
+        - Search
+      summary: Search Endpoint
+      description: |-
+        Tiingo's search feature lets you find specific assets in our database by the ticker or the name of the asset. This endpoint lets you segment by active, delisted, tickers across asset classes. The endpoint first searches for ticker matches and then expands to matches in the name of the asset.
+
+        This endpoint is useful for looking up existing assets
+      parameters:
+        - name: query
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The search query to use to look up assets.
+          example: apple
+
+        - name: exactTickerMatch
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: |-
+            True to only include exact ticker matches based on the search query. If set to true, no partial matches will be included and asset names will not be searched.
+
+        - name: includeDelisted
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: |-
+            True to include delisted tickers and false (default) to exclude delisted tickers.
+
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: |-
+            The maximum number of assets to return. Defaults to 10 and can be set to a maximum of 100.
+
+        - name: columns
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          description: |-
+            Allows you to specify which columns you would like returned from the output. Pass an array of strings of column names to get only this columns back.
+
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ json, csv ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Meta data request was successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Asset'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Asset'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /iex:
+    get:
+      summary: Current Top-of-Book & Last Price
+      tags:
+        - IEX
+      operationId: getTopOfBookAll
+      description: |-
+        Tiingo has a cross-correct directly to the IEX Exchange that gives us access to raw binary price feeds we can share with you all. We receive IEX TOPS (top of book), which means we get the last sale data AND top bid and ask quotes.
+        
+        Benefits of Tiingo + IEX
+        
+          - 5,600+ tickers IEX provides quotes and trade data on.
+          - Data includes Top-of-Book (Bid/Ask) and Last Sale (trade) Data.
+          - Data now includes intraday OHLC bar historical data for all your needs.
+          - Tiingo enriches the data, giving you more data for your convenience.
+          - Quotes updated to the latest nanosecond.
+          - Access to every field IEX gives us access to (including trade flags).
+          - Data is served via a REST API & Websocket API.
+        
+        As of June 29th, 2022, we have implemented a 15ms delay. This delay is a new requirement by the IEX Exchange to keep the data free for customers without a license fee, separate license agreement, and reporting to the IEX Exchange. If you need data faster than 15ms, IEX Exchange does require a $500/month license fee paid directly to the Exchange along with a separate license agreement between you and the IEX Exchange. Please reach out to [sales@tiingo.com](mailto:sales@tiingo.com) and we can put you in touch with the IEX Exchange for this paperwork. Our belief is that a 15ms delay should make no practical impact to our customers, since network latency between our servers in NY/NJ and most of our customers outside of the NY Metro area, will have network latency greater than 15ms just by geographical separation.
+        
+        You can find out about the full product offering on the [Product - IEX](https://www.tiingo.com/products/iex-api) page.
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [ csv, json ]
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopOfBook'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopOfBook'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+  /iex/{ticker}:
+    get:
+      summary: Current Top-of-Book & Last Price By Ticker
+      tags:
+        - IEX
+      operationId: getTopOfBookByTicker
+      description: |-
+        Tiingo has a cross-correct directly to the IEX Exchange that gives us access to raw binary price feeds we can share with you all. We receive IEX TOPS (top of book), which means we get the last sale data AND top bid and ask quotes.
+
+        Benefits of Tiingo + IEX
+
+          - 5,600+ tickers IEX provides quotes and trade data on.
+          - Data includes Top-of-Book (Bid/Ask) and Last Sale (trade) Data.
+          - Data now includes intraday OHLC bar historical data for all your needs.
+          - Tiingo enriches the data, giving you more data for your convenience.
+          - Quotes updated to the latest nanosecond.
+          - Access to every field IEX gives us access to (including trade flags).
+          - Data is served via a REST API & Websocket API.
+        
+        As of June 29th, 2022, we have implemented a 15ms delay. This delay is a new requirement by the IEX Exchange to keep the data free for customers without a license fee, separate license agreement, and reporting to the IEX Exchange. If you need data faster than 15ms, IEX Exchange does require a $500/month license fee paid directly to the Exchange along with a separate license agreement between you and the IEX Exchange. Please reach out to [sales@tiingo.com](mailto:sales@tiingo.com) and we can put you in touch with the IEX Exchange for this paperwork. Our belief is that a 15ms delay should make no practical impact to our customers, since network latency between our servers in NY/NJ and most of our customers outside of the NY Metro area, will have network latency greater than 15ms just by geographical separation.
+        
+        You can find out about the full product offering on the [Product - IEX](https://www.tiingo.com/products/iex-api) page.
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset.
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [ csv, json ]
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopOfBook'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopOfBook'
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+
+  /iex/{ticker}/prices:
+    get:
+      summary: Historical Intraday Prices Endpoint
+      tags:
+        - IEX
+      operationId: getHistoricalIntradayPrices
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ticker related to the asset.
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: |-
+            If startDate or endDate is not null, historical data will be queried. 
+            This filter limits metrics to on or after the startDate (>=). 
+            Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: |-
+            If startDate or endDate is not null, historical data will be queried. 
+            This filter limits metrics to on or before the endDate (<=). 
+            Parameter must be in YYYY-MM-DD format.
+        - name: resampleFreq
+          in: query
+          schema:
+            type: string
+            enum: [ 1min, 5min, 15min, 1hour ]
+          description: |-
+            This allows you to set the frequency in which you want data resampled. 
+            For example "1hour" would return the data where OHLC is calculated on an hourly schedule. 
+            The minimum value is "1min". Both units in minutes (min) and hours (hour) are accepted. 
+            Format is # + (min/hour); e.g. "15min" or "4hour". 
+            If no value is provided, defaults to 5min.
+        - name: afterHours
+          in: query
+          schema:
+            type: boolean
+          description: If set to true, includes pre and post market data if available.
+        - name: forceFill
+          in: query
+          schema:
+            type: boolean
+          description: |
+            Some tickers do not have a trade/quote update for a given time period. 
+            if forceFill is set to true, then the previous OHLC will be used to fill the current OHLC.
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [ csv, json ]
+          description: |-
+            Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrice'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrice'
+
+      security:
+        - apiKeyQuery: [ ]
+        - apiKeyHeader: [ ]
+  /tiingo/fx/top:
+    get:
+      summary: Current Top-of-Book
+      tags:
+        - Forex
+      description: |-
+        Tiingo connects directly to tier-1 banks and FX dark pools to provide institutional-grade quality Forex quotes.
+        
+        Benefits of the Tiingo Forex API
+        
+          - 140+ Forex Tickers Quoted
+          - Data includes Top-of-Book (Bid/Ask) data
+          - Data now includes intraday OHLC bar historical data for all your needs.
+          - Quotes updated to the latest microsecond.
+          - Data is served via a REST API & Websocket API.
+          - Market hours are from 8pm EST Sunday through 5pm EST Friday.
+        
+        For more details please visit the [Forex API product page](https://www.tiingo.com/products/forex-api).
+        
+        To request top-of-book/last for mulitple base and quote pairs, use the following REST endpoint
+      parameters:
+        - name: tickers
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - EURUSD
+              - GBPUSD
+              - USDJPY
+          description: Ticker related to the asset.
+          explode: false
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForexTopOfBook'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForexTopOfBook'
+      security:
+        - apiKeyHeader: [ ]
+        - apiKeyQuery: [ ]
+  /tiingo/fx/{ticker}/top:
+    get:
+      summary: Current Top-of-Book by Ticker
+      description: |-
+        Tiingo connects directly to tier-1 banks and FX dark pools to provide institutional-grade quality Forex quotes.
+
+        Benefits of the Tiingo Forex API
+
+          - 140+ Forex Tickers Quoted
+          - Data includes Top-of-Book (Bid/Ask) data
+          - Data now includes intraday OHLC bar historical data for all your needs.
+          - Quotes updated to the latest microsecond.
+          - Data is served via a REST API & Websocket API.
+          - Market hours are from 8pm EST Sunday through 5pm EST Friday.
+
+        For more details please visit the [Forex API product page](https://www.tiingo.com/products/forex-api).
+
+        To request top-of-book/last for specific tickers, use the following REST endpoint
+      tags:
+        - Forex
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "EURUSD"
+          description: Ticker related to the asset.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForexTopOfBook'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForexTopOfBook'
+      security:
+        - apiKeyHeader: [ ]
+        - apiKeyQuery: [ ]
+
+  /tiingo/fx/{ticker}/prices:
+    get:
+      summary: Intraday Prices Endpoint
+      description: To request historical intraday prices for a forex pair, use the following REST endpoint.
+      tags:
+        - Forex
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "EURUSD"
+          description: Ticker related to the asset.
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2019-06-30"
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2019-07-07"
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
+        - name: resampleFreq
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ 1min, 5min, 15min, 30min, 1hour, 4hour, 1day ]
+            example: "5min"
+          description: |-
+            This allows you to set the frequency in which you want data resampled. For example "1hour" would return the data where OHLC is calculated on an hourly schedule. The minimum value is "1min". Both units in minutes (min) and hours (hour) are accepted. 
+
+            Format is # + (min/hour); e.g. "15min" or "4hour". If no value is provided, defaults to 5min.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrices'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoricalPrices'
+      security:
+        - apiKeyHeader: [ ]
+        - apiKeyQuery: [ ]
+
+  /tiingo/crypto/prices:
+    get:
+      summary: Intraday Data for Current or Last Business Day
+      description: |-
+        Tiingo connects to a variety of cryptocurrency exchanges to create a consolidated top-of-book feed.
+
+        The Benefits of Tiingo Crypto
+        
+          - Over 8,000 tickers covered, with more added frequently.
+          - You can choose which exchanges to get data from, and Top-of-Book and aggregate OHLCV data are then compiled on-the-fly.
+          - Data includes Top-of-Book (Bid/Ask) and Last Sale (trade) Data.
+          - Data includes intraday OHLC bar historical data for all your needs.
+          - Tiingo compiles the data to give you updates when the bid/ask and last price change.
+          - Tiingo enriches the data, giving you more data for your convenience.
+          - Download the entire market in one API call.
+        
+        You can find out about the full product offering on the [Product - Crypto](https://www.tiingo.com/documentation/crypto) page.
+      tags:
+        - Crypto
+      parameters:
+        - name: tickers
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          example:
+            - btcusd
+          description: The ticker(s) associated with the crypto pair(s). Can either be a single string or an array of strings (string[]). No more than 100 tickers may be requested at this time.
+        - name: exchanges
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - POLONIEX
+              - GDAX
+          explode: false
+          description: If you would like to limit the query to a subset of exchanges, pass a comma-separated list of exchanges to select.
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or later than the startDate (>=). Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or less than the endDate (<=). Parameter must be in YYYY-MM-DD format.
+        - name: resampleFreq
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            This allows you to set the frequency in which you want data resampled. For example, "1hour" would return the data where OHLC is calculated on an hourly schedule. The minimum value is "1min". Units in minutes (min), hours (hour), and days (day) are accepted. Format is # + (min/hour/day); e.g., "15min", "4hour" or "1day". If no value is provided, defaults to 5min.
+        - name: includeRawExchangeData
+          in: query
+          required: false
+          schema:
+            type: boolean
+            example: false
+          description: |-
+            The underlying data for each exchange. This will only be returned if the includeRawExchangeData flag is set to "true".
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response with price data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CryptoPriceResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CryptoPriceResponse'
+      security:
+        - apiKeyHeader: [ ]
+        - apiKeyQuery: [ ]
+
+  /tiingo/crypto:
+    get:
+      summary: Meta Endpoint
+      description: To request meta data for a cryptocurrency, use the following REST endpoints.
+      tags:
+        - Crypto
+      parameters:
+        - name: tickers
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+          example:
+            - curebtc
+          description: The ticker(s) associated with the crypto pair(s). Can either be a single string or an array of strings (string[]). No more than 100 tickers may be requested at this time. If no ticker(s) are passed, returns data for all supported crypto pairs.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+            default: json
+          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response with metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CryptoMetaResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CryptoMetaResponse'
+      security:
+        - apiKeyHeader: [ ]
+        - apiKeyQuery: [ ]
+  /tiingo/funds/{ticker}:
+    get:
+      summary: Fund Overview
+      description: |-
+        Tiingo tracks and processes official Mutual Fund & ETF Fee data from over 36,000 Mutual Funds and ETFs. The data includes a detailed breakdown data of fees, even including custom fees (like check processing fee if withdrawing money via check).
+        
+        Benefits of Mutual Fund & ETF Fee Data
+        
+        - 36,000+ Mutual Funds and ETFs covered.
+        - Data includes historical as well as current data.
+        - Fee data is detailed and broken down (e.g. management fee, 12b-1 fees, and more).
+        - Fee data is updated intraday as new data comes online from Fund Companies.
+        - Multiple share classes are mapped allowing you to easily compare fees across share classes.
+        
+        To obtain top-level fund data, including description and share classes, use the following REST endpoint.
+      tags:
+        - Fund Fees
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker related to the fund.
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+          description: |-
+            Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundOverviewResponse'
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/FundOverviewResponse'
+      security:
+        - apiKeyHeader: [ ]
+        - apiKeyQuery: [ ]
+
+  /tiingo/funds/{ticker}/metrics:
+    get:
+      summary: Historical and Current Mutual Fund & ETF Fee Data
+      description: To obtain detailed current and historical fee data, use the following REST endpoint.
+      tags:
+        - Fund Fees
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker related to the asset.
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
+        - name: resampleFreq
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            This allows you to set the frequency in which you want data resampled. For example "1hour" would return the data where OHLC is calculated on an hourly schedule. The minimum value is "1min". Both units in minutes (min) and hours (hour) are accepted. Format is # + (min/hour); e.g. "15min" or "4hour". If no value is provided, defaults to 5min.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ csv, json ]
+          description: |-
+            Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FundMetricsResponse'
+            text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FundMetricsResponse'
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "You successfully sent a request"
+
+    MetaDataResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Ticker related to the asset.
+          example: "AAPL"
+        name:
+          type: string
+          description: Full-length name of the asset.
+          example: "Apple Inc"
+        exchangeCode:
+          type: string
+          description: An identifier that maps which Exchange this asset is listed on.
+          example: "NASDAQ"
+        startDate:
+          type: string
+          format: date
+          description: The earliest date we have price data available for the asset. When null it means no price data available for the given asset.
+          example: "2019-01-25"
+        endDate:
+          type: string
+          format: date
+          description: The latest date we have price data available for the asset. When null it means no price data available for the given asset.
+          example: "2019-01-25"
+        description:
+          type: string
+          description: Long-form description of the asset.
+          example: |-
+            Apple Inc. (Apple) designs, manufactures and markets mobile communication and media devices, personal computers, and portable digital music players, and a variety of related software, services, peripherals, networking solutions, and third-party digital content and applications. The Company's products and services include iPhone, iPad, Mac, iPod, Apple TV, a portfolio of consumer and professional software applications, the iOS and OS X operating systems, iCloud, and a variety of accessory, service and support offerings. The Company also delivers digital content and applications through the iTunes Store, App StoreSM, iBookstoreSM, and Mac App Store. The Company distributes its products worldwide through its retail stores, online stores, and direct sales force, as well as through third-party cellular network carriers, wholesalers, retailers, and value-added resellers. In February 2012, the Company acquired app-search engine Chomp.
+
+    PriceDataResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: The date this data pertains to.
+          example: "2019-01-02T00:00:00.000Z"
+        open:
+          type: number
+          format: float
+          description: The opening price for the asset on the given date.
+          example: 154.89
+        high:
+          type: number
+          format: float
+          description: The high price for the asset on the given date.
+          example: 158.85
+        low:
+          type: number
+          format: float
+          description: The low price for the asset on the given date.
+          example: 154.23
+        close:
+          type: number
+          format: float
+          description: The closing price for the asset on the given date.
+          example: 157.92
+        volume:
+          type: integer
+          format: int64
+          description: The number of shares traded for the asset.
+          example: 37039737
+        adjOpen:
+          type: number
+          format: float
+          description: The adjusted opening price for the asset on the given date.
+          example: 154.89
+        adjHigh:
+          type: number
+          format: float
+          description: The adjusted high price for the asset on the given date.
+          example: 158.85
+        adjLow:
+          type: number
+          format: float
+          description: The adjusted low price for the asset on the given date.
+          example: 154.23
+        adjClose:
+          type: number
+          format: float
+          description: The adjusted closing price for the asset on the given date.
+          example: 157.92
+        adjVolume:
+          type: integer
+          format: int64
+          description: The number of shares traded for the asset.
+          example: 37039737
+        divCash:
+          type: number
+          format: float
+          description: The dividend paid out on "date" (note that "date" will be the "exDate" for the dividend).
+          example: 0.0
+        splitFactor:
+          type: number
+          format: float
+          description: The factor used to adjust prices when a company splits, reverse splits, or pays a distribution.
+          example: 1.0
+
+    NewsResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier specific to the news article.
+          example: 15063835
+        title:
+          type: string
+          description: Title of the news article.
+          example: "Apple CEO Tim Cook on US-China trade negotiations: 'There is a bit more optimism in the air'"
+        url:
+          type: string
+          description: URL of the news article.
+          example: "https://www.cnbc.com/2019/01/29/apples-ceo-sees-optimism-as-trade-tension-between-us-and-china-lessens.html"
+        description:
+          type: string
+          description: Long-form description of the news story.
+          example: "Apple CEO Tim Cook told CNBC that trade tensions between the U.S. and China have improved since late December."
+        publishedDate:
+          type: string
+          format: date-time
+          description: The datetime the news story was published in UTC. This is usually reported by the news source and not by Tiingo.
+          example: "2019-01-29T22:17:00Z"
+        crawlDate:
+          type: string
+          format: date-time
+          description: The datetime the news story was added to our database in UTC. This is always recorded by Tiingo.
+          example: "2019-01-29T22:20:01.696871Z"
+        source:
+          type: string
+          description: The domain the news source is from.
+          example: "cnbc.com"
+        tickers:
+          type: array
+          items:
+            type: string
+          description: What tickers are mentioned in the news story using Tiingo's proprietary tagging algo.
+          example:
+            - "aapl"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags that are mapped and discovered by Tiingo using Tiingo's proprietary tagging algo.
+          example:
+            - "China"
+            - "Economic Measures"
+            - "Economics"
+            - "Markets"
+            - "Stock"
+            - "Technology"
+            - "Tiingo Top"
+            - "Trade"
+
+    BulkDownloadFileResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier specific to the bulk download file. Used to select which file to download.
+          example: 755
+        url:
+          type: string
+          description: |-
+            A url you can use to directly download the batch file. NOTE: This url contains your Auth Token and is meant to be a "copy/paste" url for your convenience.
+          example: "https://api.tiingo.com/tiingo/news/bulk_download/755?token=Not logged-in or registered. Please login or register to see your API Token"
+        filename:
+          type: string
+          description: The filename of the batch file.
+          example: "bulkfile_2019-01-28_2019-01-29.tar.gz"
+        batchType:
+          type: string
+          description: |-
+            Describes what kind of batch file this is. The value will either be: "base" or "incremental".
+          example: "incremental"
+        startDate:
+          type: string
+          format: date
+          description: The start date that was used to select the News objects to generate the batch file. This is inclusive. publishedDate >= startDate.
+          example: "2019-01-28T05:00:00Z"
+        endDate:
+          type: string
+          format: date
+          description: The end date that was used to select the News objects to generate the batch file. This is not inclusive. publishedDate < endDate.
+          example: "2019-01-29T05:00:00Z"
+        fileSizeCompressed:
+          type: integer
+          format: int64
+          description: The size of the file in bytes compressed using gzip.
+          example: 3018550
+        fileSizeUncompressed:
+          type: integer
+          format: int64
+          description: The size of the file in bytes uncompressed.
+          example: 10385878
+
+    DistributionDataResponse:
+      type: object
+      properties:
+        permaTicker:
+          type: string
+          description: The Tiingo permaticker.
+          example: "US000000000045"
+        ticker:
+          type: string
+          description: Ticker related to the asset.
+          example: "ge"
+        exDate:
+          type: string
+          format: date-time
+          description: The ex-Date of the distribution. In the Tiingo EOD Endpoints, this is the date where "divCash" will be non-zero. This is also the date used for dividend price adjustments.
+          example: "2023-09-25T00:00:00.000Z"
+        paymentDate:
+          type: string
+          format: date-time
+          description: The payment date of the distribution.
+          example: "2023-10-25T00:00:00.000Z"
+        recordDate:
+          type: string
+          format: date-time
+          description: The record date of the distribution.
+          example: "2023-09-26T00:00:00.000Z"
+        declarationDate:
+          type: string
+          format: date-time
+          description: The declaration date of the distribution.
+          example: "2023-09-08T04:00:00.000Z"
+        distribution:
+          type: number
+          format: float
+          description: The total distribution for the given date.
+          example: 0.08
+        distributionFreqency:
+          type: string
+          enum: [ w, bm, m, tm, q, sa, a, ir, f, u, c ]
+          description: |-
+            The frequency that's associated with this distribution. For example "q" means quarterly, meaning this is a declared quarterly distribution. The full list of codes is available here:
+            - w: Weekly
+            - bm: Bimonthly
+            - m: Monthly
+            - tm: Trimesterly
+            - q: Quarterly
+            - sa: Semiannually
+            - a: Annually
+            - ir: Irregular
+            - f: Final
+            - u: Unspecified
+            - c: Cancelled
+          example: "q"
+
+    DistributionYieldDataResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Date associated with the yield.
+          example: "2023-08-18T00:00:00.000Z"
+        trailingDiv1Y:
+          type: number
+          format: float
+          description: The trailing distribution yield for the asset based on the previous 1 year of distributions.
+          example: 0.0053871282
+
+    SplitDataResponse:
+      type: object
+      properties:
+        permaTicker:
+          type: string
+          description: The Tiingo permaticker.
+          example: "US000000000001"
+        ticker:
+          type: string
+          description: Ticker related to the asset.
+          example: "ge"
+        exDate:
+          type: string
+          format: date-time
+          description: The ex-Date of the split. In the Tiingo EOD Endpoints, this is the date where "splitFactor" will not be 1.0. This is also the date used for split adjustments.
+          example: "2023-09-25T00:00:00.000Z"
+        splitFrom:
+          type: number
+          format: float
+          description: The prior split ratio.
+          example: 1.0
+        splitTo:
+          type: number
+          format: float
+          description: The new split ratio, i.e. how many shares of "splitTo" are given for each share of "splitFrom".
+          example: 2.0
+        splitFactor:
+          type: number
+          format: float
+          description: |-
+            The ratio of splitTo from splitFrom. In other words: splitFactor = splitTo/splitFrom This ratio is helpful in calculating split price adjustments.
+          example: 2.0
+        splitStatus:
+          type: string
+          enum: [ a,c ]
+          description: |-
+            A code representing the status of split
+              - a: Active
+              - c: Cancelled
+          example: "a"
+
+    FundamentalDefinitionResponse:
+      type: object
+      properties:
+        dataCode:
+          type: string
+          description: An identifier representing the fundamentals field the value belongs to.
+          example: "peRatio"
+        name:
+          type: string
+          description: A human-friendly readable name of the field.
+          example: "Price to Earnings Ratio"
+        description:
+          type: string
+          description: A description of the field.
+          example: "The ratio of a company's share price to its per-share earnings."
+        statementType:
+          type: string
+          description: |-
+            One of four values ("balanceSheet", "incomeStatement", "cashFlow", "overview"), representing which statement this value belongs to.
+          example: "incomeStatement"
+        units:
+          type: string
+          description: The unit the field value is in. Value is either "$", "%" or blank. If blank, value may either be an integer (like shares outstanding), or a ratio.
+          example: "$"
+
+    StatementDataResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: The date the statement data was released to the public.
+          example: "2019-06-30T00:00:00.000Z"
+        quarter:
+          type: integer
+          format: int32
+          description: |-
+            An integer corresponding to the fiscal quarter reported. A value of "0" means this is an Annual Report.
+          example: 2
+        year:
+          type: integer
+          format: int32
+          description: An integer corresponding to the fiscal year reported.
+          example: 2019
+        statementData:
+          type: object
+          properties:
+            balanceSheet:
+              type: array
+              items:
+                $ref: '#/components/schemas/StatementDataField'
+            incomeStatement:
+              type: array
+              items:
+                $ref: '#/components/schemas/StatementDataField'
+            cashFlow:
+              type: array
+              items:
+                $ref: '#/components/schemas/StatementDataField'
+            overview:
+              type: array
+              items:
+                $ref: '#/components/schemas/StatementDataField'
+
+    StatementDataField:
+      type: object
+      properties:
+        dataCode:
+          type: string
+          description: An identifier representing the fundamentals field the value belongs to.
+          example: "peRatio"
+        value:
+          type: number
+          format: float
+          description: The value of the field corresponding to the dataCode.
+          example: 15.5
+
+    DailyDataResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: The date the daily data corresponds to.
+          example: "2023-08-18T00:00:00.000Z"
+        marketCap:
+          type: number
+          format: float
+          description: The value of the field corresponding to the market capitalization.
+          example: 1000000000
+        enterpriseVal:
+          type: number
+          format: float
+          description: The value of the field corresponding to the enterprise value.
+          example: 1200000000
+        peRatio:
+          type: number
+          format: float
+          description: The value of the field corresponding to the price/earnings ratio.
+          example: 25.5
+        pbRatio:
+          type: number
+          format: float
+          description: The value of the field corresponding to the price/book ratio.
+          example: 3.0
+        trailingPEG1Y:
+          type: number
+          format: float
+          description: The value of the field corresponding to the trailing 1 year PEG Ratio.
+          example: 1.5
+
+    FundamentalMetaResponse:
+      type: object
+      properties:
+        permaTicker:
+          type: string
+          description: Permanent Tiingo Ticker mapping to the security.
+          example: "US000000000001"
+        ticker:
+          type: string
+          description: Ticker related to the asset.
+          example: "AAPL"
+        name:
+          type: string
+          description: Full-length name of the asset.
+          example: "Apple Inc"
+        isActive:
+          type: boolean
+          description: Boolean describing whether or not the ticker is still actively traded. If false, this ticker is delisted.
+          example: true
+        isADR:
+          type: boolean
+          description: Boolean describing whether or not the ticker is an ADR. Value is true if listed ticker is an ADR.
+          example: false
+        sector:
+          type: string
+          description: Sector information that is derived from sicSector and is meant to approximate GICS.
+          example: "Technology"
+        industry:
+          type: string
+          description: Industry information that is derived from sicIndustry and is meant to approximate GICS.
+          example: "Consumer Electronics"
+        sicCode:
+          type: integer
+          format: int32
+          description: SIC Code that represents company's business activities.
+          example: 3571
+        sicSector:
+          type: string
+          description: Sector as determined by the SIC Code.
+          example: "Manufacturing"
+        sicIndustry:
+          type: string
+          description: Industry as determined by the SIC Code.
+          example: "Electronic Computers"
+        reportingCurrency:
+          type: string
+          description: The currency the company reports their SEC statement filings in.
+          example: "USD"
+        location:
+          type: string
+          description: Location/domicile of the company. States are included for U.S. companies, otherwise countries for non-US companies.
+          example: "Cupertino, CA, USA"
+        companyWebsite:
+          type: string
+          description: The website of the company when available.
+          example: "https://www.apple.com"
+        secFilingWebsite:
+          type: string
+          description: A URL to where you can find the company's SEC filings directly on the SEC website.
+          example: "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000320193"
+        statementLastUpdated:
+          type: string
+          format: date-time
+          description: The timestamp the statement data/endpoint was last updated for the ticker.
+          example: "2023-01-01T00:00:00.000Z"
+        dailyLastUpdated:
+          type: string
+          format: date-time
+          description: The timestamp the daily data/endpoint was last updated for the ticker.
+          example: "2023-01-02T00:00:00.000Z"
+
+    Asset:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Ticker of the given asset.
+          example: "AAPL"
+        name:
+          type: string
+          description: The name of the asset.
+          example: "Apple Inc"
+        assetType:
+          type: string
+          description: The asset type of the asset (Stock, ETF, & Mutual Fund).
+          example: "Stock"
+        isActive:
+          type: boolean
+          description: True if the ticker is still actively quoted, and false if the ticker is no longer actively quoted (delisted).
+          example: true
+        permaTicker:
+          type: string
+          description: Placeholder for an upcoming change to the Tiingo API that allows querying by permaticker.
+          example: "US000000000038"
+        openFIGI:
+          type: string
+          description: Placeholder for an upcoming change to the Tiingo API that allows querying by the openFIGI ticker.
+          example: "BBG000B9XRY4"
+        countryCode:
+          type: string
+          description: The country code of the asset.
+          example: "US"
+
+    TopOfBook:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Ticker related to the asset.
+          example: "AAPL"
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp the data was last refreshed on.
+          example: "2019-01-30T10:33:38.186520297-05:00"
+        quoteTimestamp:
+          type: string
+          format: date-time
+          description: The timestamp the last time the quote (bid/ask) data was received from IEX.
+          example: "2019-01-30T10:33:38.186520297-05:00"
+        lastSaleTimestamp:
+          type: string
+          format: date-time
+          description: The timestamp the last time the trade (last/lastSize) data was received from IEX.
+          example: "2019-01-30T10:33:34.176037579-05:00"
+        last:
+          type: number
+          format: float
+          description: Last is the last trade that was executed on IEX.
+          example: 162.37
+        lastSize:
+          type: integer
+          format: int32
+          description: The amount of shares traded (volume) at the last price on IEX.
+          example: 100
+        tngoLast:
+          type: number
+          format: float
+          description: |-
+            Tiingo Last is either the last price or mid price. The mid price is only used if our algo determines it is a good proxy for the last price. 
+            So if the spread is considered wide by our algo, we do not use it. 
+            Also, after the official exchange print comes in, this value changes to that value. 
+            __This value is calculated by Tiingo and not provided by IEX.__
+          example: 162.33
+        prevClose:
+          type: number
+          format: float
+          description: Previous day's closing price of the security. __This can be from any of the exchanges, NYSE, NASDAQ, IEX, etc.__
+          example: 154.68
+        open:
+          type: number
+          format: float
+          description: The opening price of the asset on the current day. __This value is calculated by Tiingo and not provided by IEX.__
+          example: 161.83
+        high:
+          type: number
+          format: float
+          description: The high price of the asset on the current day. __This value is calculated by Tiingo and not provided by IEX.__
+          example: 163.25
+        low:
+          type: number
+          format: float
+          description: The low price of the asset on the current day. __This value is calculated by Tiingo and not provided by IEX.__
+          example: 160.38
+        mid:
+          type: number
+          format: float
+          description: |-
+            The mid price of the current timestamp when both "bidPrice" and "askPrice" are not-null. 
+            In mathematical terms: mid = (bidPrice + askPrice) / 2.0 
+            __This value is calculated by Tiingo and not provided by IEX.__
+          example: 162.67
+        volume:
+          type: integer
+          format: int64
+          description: |-
+            Volume will be IEX Volume throughout the day, but once the official closing price comes in, volume will reflect the volume done on the entire day across all exchanges. 
+            This field is available for convenience.
+          example: 0
+        bidSize:
+          type: number
+          format: float
+          description: The amount of shares at the bid price.
+          example: 100
+        bidPrice:
+          type: number
+          format: float
+          description: The current bid price.
+          example: 162.34
+        askSize:
+          type: number
+          format: float
+          description: The amount of shares at the ask price.
+          example: 100
+        askPrice:
+          type: number
+          format: float
+          description: The current ask price.
+          example: 163.0
+
+    HistoricalPrice:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: The date this data pertains to.
+          example: "2019-01-02T14:30:00.000Z"
+        open:
+          type: number
+          format: float
+          description: The opening price for the asset on the given date.
+          example: 154.74
+        high:
+          type: number
+          format: float
+          description: The high price for the asset on the given date.
+          example: 155.52
+        low:
+          type: number
+          format: float
+          description: The low price for the asset on the given date.
+          example: 154.58
+        close:
+          type: number
+          format: float
+          description: The closing price for the asset on the given date.
+          example: 154.76
+        volume:
+          type: integer
+          format: int64
+          description: |-
+            The number of shares traded on IEX only. __This value will only be exposed if explicitly passed to the "columns" request parameter. E.g. ?columns=open,high,low,close,volume__
+          example: 16102
+    ForexTopOfBook:
+      type: object
+      properties:
+        ticker:
+          type: string
+          example: "audusd"
+          description: Ticker related to the asset.
+        quoteTimestamp:
+          type: string
+          format: date-time
+          example: "2019-07-01T21:00:01.289000+00:00"
+          description: The timestamp the data was last refresh on.
+        midPrice:
+          type: number
+          format: float
+          example: 0.696375
+          description: |-
+            The mid price of the current timestamp when both "bidPrice" and "askPrice" are not-null. In mathematical terms:
+            midPrice = (bidPrice + askPrice)/2.0
+        bidSize:
+          type: number
+          format: float
+          example: 100000.0
+          description: The amount of units at the bid price.
+        bidPrice:
+          type: number
+          format: float
+          example: 0.6963
+          description: The current bid price.
+        askSize:
+          type: number
+          format: float
+          example: 1200000.0
+          description: The amount of units at the ask price.
+        askPrice:
+          type: number
+          format: float
+          example: 0.69645
+          description: The current ask price.
+    HistoricalPrices:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          example: "2019-06-30T00:00:00.000Z"
+          description: The date this data pertains to.
+        ticker:
+          type: string
+          example: "audusd"
+          description: Ticker related to the asset.
+        open:
+          type: number
+          format: float
+          example: 0.695
+          description: The opening price for the asset on the given date.
+        high:
+          type: number
+          format: float
+          example: 0.700
+          description: The high price for the asset on the given date.
+        low:
+          type: number
+          format: float
+          example: 0.694
+          description: The low price for the asset on the given date.
+        close:
+          type: number
+          format: float
+          example: 0.698
+          description: The closing price for the asset on the given date.
+
+
+    CryptoPriceResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Ticker related to the asset.
+          example: "btcusd"
+        baseCurrency:
+          type: string
+          description: The base pair of the cryptocurrency, e.g., "btc" for "btcusd".
+          example: "btc"
+        quoteCurrency:
+          type: string
+          description: The quote pair of the cryptocurrency, e.g., "usd" for "btcusd".
+          example: "usd"
+        priceData:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceData'
+        exchangeData:
+          type: object
+          description: The underlying data for each exchange. Only returned if __includeRawExchangeData__ flag is set to "true".
+
+    PriceData:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: The datetime this data pertains to, in the specified resample frequency.
+          example: "2019-01-02T00:00:00+00:00"
+        open:
+          type: number
+          format: float
+          description: The opening price for the asset on the given date.
+          example: 3914.749407813885
+        high:
+          type: number
+          format: float
+          description: The high price for the asset on the given date.
+          example: 3942.374263716895
+        low:
+          type: number
+          format: float
+          description: The low price for the asset on the given date.
+          example: 3846.1755315352952
+        close:
+          type: number
+          format: float
+          description: The closing price for the asset on the given date.
+          example: 3849.1217299601617
+        tradesDone:
+          type: integer
+          format: int32
+          description: The number of trades done on the given date.
+          example: 756
+        volume:
+          type: number
+          format: float
+          description: The volume done for the asset on the specific date in the base currency.
+          example: 339.68131616889997
+        volumeNotional:
+          type: number
+          format: float
+          description: The volume done for the asset on the specific date in the quote currency.
+          example: 1307474.735327181
+
+    CryptoMetaResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Ticker related to the asset.
+          example: "curebtc"
+        baseCurrency:
+          type: string
+          description: The base pair of the cryptocurrency, e.g., "btc" for "btcusd".
+          example: "cure"
+        quoteCurrency:
+          type: string
+          description: The quote pair of the cryptocurrency, e.g., "usd" for "btcusd".
+          example: "btc"
+        name:
+          type: string
+          description: Full-length name of the asset.
+          example: "CureCoin (CURE/BTC)"
+        description:
+          type: string
+          description: Long-form description of the asset.
+          example: "CureCoin (CURE/BTC)"
+    FundOverviewResponse:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Ticker related to the fund.
+          example: "vfinx"
+        name:
+          type: string
+          description: Full-length name of the fund.
+          example: "VANGUARD 500 INDEX FUND INVESTOR SHARES"
+        description:
+          type: string
+          description: Long-form description of the fund.
+          example: |-
+            The Fund employs an indexing investment approach designed to track the performance of the Standard & Poor's 500 Index, a widely recognized benchmark of U.S. stock market performance that is dominated by the stocks of large U.S. companies. The Fund attempts to replicate the target index by investing all, or substantially all, of its assets in the stocks that make up the Index, holding each stock in approximately the same proportion as its weighting in the Index.
+        shareClass:
+          type: string
+          description: Share class of the fund as described by the parent fund company.
+          example: "INVESTOR SHARES"
+        netExpense:
+          type: number
+          format: float
+          description: The top-level net expense ratio for the fund.
+          example: 0.0014
+        otherShareClasses:
+          type: array
+          description: An array of objects representing related share classes of the given fund. See below for the object definition table.
+          items:
+            $ref: '#/components/schemas/ShareClass'
+
+    ShareClass:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Ticker related to the fund.
+          example: "VFIAX"
+        name:
+          type: string
+          description: Full-length name of the fund.
+          example: "VANGUARD 500 INDEX FUND ADMIRAL SHARES"
+        shareClass:
+          type: string
+          description: Share class of the fund as described by the parent fund company.
+          example: "ADMIRAL SHARES"
+        netExpense:
+          type: number
+          format: float
+          description: The top-level net expense ratio for the fund.
+          example: 0.0004
+
+    FundMetricsResponse:
+      type: object
+      properties:
+        prospectusDate:
+          type: string
+          format: date
+          description: The prospectus date when the corresponding fund expense data was published.
+          example: "2023-01-01"
+        netExpense:
+          type: number
+          format: float
+          description: Fund's net expense ratio, or the net expenses related to the fund.
+          example: 0.04
+        grossExpense:
+          type: number
+          format: float
+          description: Fund's gross expense ratio, or the expenses related to running the fund.
+          example: 0.05
+        managementFee:
+          type: number
+          format: float
+          description: Fund's management fee, or the fees paid to the manager and/or advisors.
+          example: 0.02
+        12b1:
+          type: number
+          format: float
+          description: Fund's fee related to marketing expenses.
+          example: 0.01
+        non12b1:
+          type: number
+          format: float
+          description: Fund's fee related to distribution and similar non 12b-1 fees.
+          example: 0.01
+        otherExpenses:
+          type: number
+          format: float
+          description: Fund's other expenses, or expenses related to legal, administrative, custodial, etc.
+          example: 0.01
+        acquiredFundFees:
+          type: number
+          format: float
+          description: Fund's acquired fund fees, or expenses related to underlying businesses or funds.
+          example: 0.01
+        feeWaiver:
+          type: number
+          format: float
+          description: Fund's fee waiver, or discount on fees.
+          example: 0.01
+        exchangeFeeUSD:
+          type: number
+          format: float
+          description: Fund's exchange fee if charged in USD, or expenses related to exchanging or transferring funds to another fund in the fund's family.
+          example: 25.00
+        exchangeFeePercent:
+          type: number
+          format: float
+          description: Fund's exchange fee if charged as a percentage, or expenses related to exchanging or transferring funds to another fund in the fund's family.
+          example: 0.02
+        frontLoad:
+          type: number
+          format: float
+          description: Fund's front load fee, or the upfront fee charged when investing in the fund.
+          example: 0.05
+        backLoad:
+          type: number
+          format: float
+          description: Fund's back load fee, or the back-end fee charged when redeeming from the fund.
+          example: 0.04
+        dividendLoad:
+          type: number
+          format: float
+          description: Dividend load fee, or charges on reinvested dividends.
+          example: 0.02
+        shareholderFee:
+          type: number
+          format: float
+          description: Fund's shareholder fees, or the potential fees when buying/selling a fund.
+          example: 0.01
+        accountFeeUSD:
+          type: number
+          format: float
+          description: Fund's account fees if charged in USD, or the fee required to maintain your account in USD.
+          example: 15.00
+        accountFeePercent:
+          type: number
+          format: float
+          description: Fund's account fees if charged as a percentage, or the fee required to maintain your account in percentage terms.
+          example: 0.01
+        redemptionFeeUSD:
+          type: number
+          format: float
+          description: Fund's redemption fees if charged in USD, or the fee charged if funds are redeemed early (as defined by the fund company).
+          example: 50.00
+        redemptionFeePercent:
+          type: number
+          format: float
+          description: Fund's redemption fees as a percentage, or the fee charged if funds are redeemed early (as defined by the fund company).
+          example: 0.01
+        portfolioTurnover:
+          type: number
+          format: float
+          description: Portfolio turnover.
+          example: 0.5
+        miscFees:
+          type: number
+          format: float
+          description: Fund's miscellaneous fees.
+          example: 0.01
+        customFees:
+          type: array
+          description: Fund's custom fees. For a full breakdown, see the table below.
+          items:
+            $ref: '#/components/schemas/CustomFee'
+
+    CustomFee:
+      type: object
+      properties:
+        label:
+          type: string
+          description: Label related to the custom fee.
+          example: "Wire Fee"
+        value:
+          type: number
+          format: float
+          description: Value of the custom fee field.
+          example: 20.0
+        units:
+          type: string
+          description: |-
+            "$" if the value is in dollars or "%" if the value is in percentage terms.
+          example: "$"
+        parentFee:
+          type: string
+          description: The parent fee the custom fee's belongs under.
+          example: "miscFees"
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: Authorization
+    apiKeyQuery:
+      type: apiKey
+      in: query
+      name: token
+
+tags:
+  - name: Connecting
+    description: "Connecting to the REST API"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/general/connecting
+  - name: End-of-Day Prices
+    description: "Endpoints for accessing End-of-Day Price data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/end-of-day
+  - name: News
+    description: "Endpoints for accessing News data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/news
+  - name: Crypto
+    description: "Endpoints for accessing Crypto data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/crypto
+  - name: Forex
+    description: "Endpoints for accessing Forex data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/forex
+  - name: IEX
+    description: "Endpoints for accessing IEX data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/iex
+  - name: Fundamentals
+    description: "Endpoints for accessing fundamental data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/fundamentals
+  - name: Fund Fees
+    description: "Endpoints for accessing Mutual Fund and ETF Fee data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/mutual-fund-and-etf-fees
+  - name: Dividends
+    description: "Endpoints for accessing Dividend data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/stock-etf-mutual-fund-dividends
+  - name: Splits
+    description: "Endpoints for accessing split data"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/stock-etf-mutual-fund-splits
+  - name: Search
+    description: "Endpoints to search for an asset"
+    externalDocs:
+      description: See Docs
+      url: https://www.tiingo.com/documentation/utilities/search
