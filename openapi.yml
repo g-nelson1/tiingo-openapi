@@ -155,7 +155,7 @@ paths:
           schema:
             type: string
             format: date
-            default: 2012-1-1
+            example: "2012-01-01"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
           in: query
@@ -163,7 +163,7 @@ paths:
           schema:
             type: string
             format: date
-            default: 2016-1-1
+            example: "2016-01-01"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: resampleFreq
           in: query
