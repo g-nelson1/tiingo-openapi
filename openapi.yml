@@ -66,6 +66,7 @@ paths:
       tags:
         - Connecting
       summary: Test API connection with token in URL
+      operationId: TestInUrl
       description: |-
         Using our REST API is super easy to do. Just use your favorite programming language's web request package and the data will be returned via JSON or CSV.
         
@@ -99,6 +100,7 @@ paths:
       tags:
         - Connecting
       summary: Test API connection with token in header
+      operationId: TestInHeader
       description: |-
         Using our REST API is super easy to do. Just use your favorite programming language's web request package and the data will be returned via JSON or CSV.
         
@@ -132,6 +134,7 @@ paths:
       tags:
         - End-of-Day Prices
       summary: End-of-Day Endpoint
+      operationId: EndOfDay
       description: |-
         Request latest or historical price data for a stock using the ticker symbol.
         
@@ -155,7 +158,7 @@ paths:
           schema:
             type: string
             format: date
-            example: "2012-01-01"
+            default: 2012-1-1
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
           in: query
@@ -163,7 +166,7 @@ paths:
           schema:
             type: string
             format: date
-            example: "2016-01-01"
+            default: 2016-1-1
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: resampleFreq
           in: query
@@ -229,6 +232,7 @@ paths:
       tags:
         - End-of-Day Prices
       summary: Meta Endpoint
+      operationId: Meta
       description: |-
         Our meta information comes from a variety of sources, but is used to help communicate details about an asset in our database to our users.
 
@@ -273,6 +277,7 @@ paths:
       tags:
         - News
       summary: News Endpoint
+      operationId: News
       description: |-
         Tiingo's news feeds are some of the most comprehensive news feeds available. We not only incorporate financial news sites, but also financial blogs - including those of small-time reputable bloggers, and tag them using the latest algos our team has been developing for over a decade. We bring these powerful feeds to you.
 
@@ -416,6 +421,7 @@ paths:
       tags:
         - News
       summary: Bulk Download
+      operationId: BulkNews
       description: |-
         To download the entire database, use the following REST endpoints. An "incremental" batchType file is added every evening. At 12am EST a batch process runs saving down all news articles for the past 24 hours.
 
@@ -454,6 +460,7 @@ paths:
       tags:
         - News
       summary: Bulk Download by Id
+      operationId: BulkNewsById
       description: |-
         To download the entire database, use the following REST endpoints. An "incremental" batchType file is added every evening. At 12am EST a batch process runs saving down all news articles for the past 24 hours.
 
@@ -500,6 +507,7 @@ paths:
       tags:
         - Dividends
       summary: Batch Distribution Data
+      operationId: Distributions
       description: |-
         Use this endpoint to get past, present, and future dividends and distributions. This endpoint will return detailed dividend and distribution data for a given stock, ETF, or Mutual Fund. You will also notice a distribution frequency, this is the declared frequency of the distribution that you can use to customize your calculations to determine yield.
       parameters:
@@ -550,6 +558,7 @@ paths:
       tags:
         - Dividends
       summary: Ticker-specific Distribution Data
+      operationId: DistributionsByTicker
       description: |-
         This endpoint is similar to the batch endpoint, but allows you to specify a specific ticker to limit the query and also provide historical distribution timeseries data for a ticker as well. Stocks, ETFs, and Mutual Funds are supported.
       parameters:
@@ -613,6 +622,7 @@ paths:
       tags:
         - Dividends
       summary: Historical Yield Endpoint
+      operationId: HistoricalYield
       description: |-
         Use this endpoint to obtain the current and historical information about yield data for the given Stock, ETF, or Mutual Fund. Please note that we will continue to add new daily metrics, so the fields will change throughout time. We recommend you __do not__ make parsing code that requires columns or fields to be in a particular order. If you do require this, please use the __columns__ request parameter to ensure constant output, even if we add columns. For example, __columns=trailingDiv1Y__ will always ensure only that single field is returned in that exact order.
       parameters:
@@ -662,6 +672,7 @@ paths:
       tags:
         - Splits
       summary: Batch Split Data
+      operationId: Splits
       description: |-
         Use this endpoint to get past, present, and future splits. This endpoint will return detailed split data for a given stock, ETF, or Mutual Fund. You will also notice split status - this can either be active ("a") or cancelled ("c").
       parameters:
@@ -712,6 +723,7 @@ paths:
       tags:
         - Splits
       summary: Ticker-specific Split Data
+      operationId: SplitsByTicker
       description: |-
         This endpoint is similar to the batch endpoint, but allows you to specify a specific ticker to limit the query and also provide historical split timeseries data for a ticker as well. Stocks, ETFs, and Mutual Funds are supported.
       parameters:
@@ -775,6 +787,7 @@ paths:
       tags:
         - Fundamentals
       summary: Definitions Data
+      operationId: Definitions
       description: |-
         This endpoint can be used to check which the various fields available in the fundamentals endpoint. As we add more indicators, the output of this endpoint will change to reflect the addition of indicators.
       parameters:
@@ -819,6 +832,7 @@ paths:
       tags:
         - Fundamentals
       summary: Statement Data Endpoint
+      operationId: Statements
       description: |-
         This endpoint returns data that is extracted from quarterly and annual statements.
 
@@ -891,6 +905,7 @@ paths:
       tags:
         - Fundamentals
       summary: Daily Data
+      operationId: Daily
       description: |-
         While statement data covers quarterly and annual reporting, some metrics that rely on price update daily, for example Market Capitalization, P/E Ratios, P/B Ratios, etc. This endpoint covers daily metrics.
         
@@ -963,6 +978,7 @@ paths:
       tags:
         - Fundamentals
       summary: Meta Data
+      operationId: Meta
       description: |-
         This endpoint can be used to check which tickers have been updated with new fundamental data.
         
@@ -1009,6 +1025,7 @@ paths:
       tags:
         - Search
       summary: Search Endpoint
+      operationId: Search
       description: |-
         Tiingo's search feature lets you find specific assets in our database by the ticker or the name of the asset. This endpoint lets you segment by active, delisted, tickers across asset classes. The endpoint first searches for ticker matches and then expands to matches in the name of the asset.
 
@@ -1089,7 +1106,7 @@ paths:
       summary: Current Top-of-Book & Last Price
       tags:
         - IEX
-      operationId: getTopOfBookAll
+      operationId: TopOfBook
       description: |-
         Tiingo has a cross-correct directly to the IEX Exchange that gives us access to raw binary price feeds we can share with you all. We receive IEX TOPS (top of book), which means we get the last sale data AND top bid and ask quotes.
         
@@ -1135,7 +1152,7 @@ paths:
       summary: Current Top-of-Book & Last Price By Ticker
       tags:
         - IEX
-      operationId: getTopOfBookByTicker
+      operationId: TopOfBookByTicker
       description: |-
         Tiingo has a cross-correct directly to the IEX Exchange that gives us access to raw binary price feeds we can share with you all. We receive IEX TOPS (top of book), which means we get the last sale data AND top bid and ask quotes.
 
@@ -1188,7 +1205,7 @@ paths:
       summary: Historical Intraday Prices Endpoint
       tags:
         - IEX
-      operationId: getHistoricalIntradayPrices
+      operationId: HistoricalIntradayPrices
       parameters:
         - name: ticker
           in: path
@@ -1265,6 +1282,7 @@ paths:
   /tiingo/fx/top:
     get:
       summary: Current Top-of-Book
+      operationId: CurrentTopOfBook
       tags:
         - Forex
       description: |-
@@ -1324,6 +1342,7 @@ paths:
   /tiingo/fx/{ticker}/top:
     get:
       summary: Current Top-of-Book by Ticker
+      operationId: CurrentTopOfBookByTicker
       description: |-
         Tiingo connects directly to tier-1 banks and FX dark pools to provide institutional-grade quality Forex quotes.
 
@@ -1379,6 +1398,7 @@ paths:
     get:
       summary: Intraday Prices Endpoint
       description: To request historical intraday prices for a forex pair, use the following REST endpoint.
+      operationId: IntradayPrices
       tags:
         - Forex
       parameters:
@@ -1445,6 +1465,7 @@ paths:
   /tiingo/crypto/prices:
     get:
       summary: Intraday Data for Current or Last Business Day
+      operationId: Prices
       description: |-
         Tiingo connects to a variety of cryptocurrency exchanges to create a consolidated top-of-book feed.
 
@@ -1543,6 +1564,7 @@ paths:
   /tiingo/crypto:
     get:
       summary: Meta Endpoint
+      operationId: Meta
       description: To request meta data for a cryptocurrency, use the following REST endpoints.
       tags:
         - Crypto
@@ -1586,6 +1608,7 @@ paths:
   /tiingo/funds/{ticker}:
     get:
       summary: Fund Overview
+      operationId: Overview
       description: |-
         Tiingo tracks and processes official Mutual Fund & ETF Fee data from over 36,000 Mutual Funds and ETFs. The data includes a detailed breakdown data of fees, even including custom fees (like check processing fee if withdrawing money via check).
         
@@ -1633,6 +1656,7 @@ paths:
     get:
       summary: Historical and Current Mutual Fund & ETF Fee Data
       description: To obtain detailed current and historical fee data, use the following REST endpoint.
+      operationId: Metrics
       tags:
         - Fund Fees
       parameters:
