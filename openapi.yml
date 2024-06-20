@@ -158,7 +158,7 @@ paths:
           schema:
             type: string
             format: date
-            default: 2012-1-1
+            example: "2012-01-01"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
           in: query
@@ -166,7 +166,7 @@ paths:
           schema:
             type: string
             format: date
-            default: 2016-1-1
+            example: "2016-01-01"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: resampleFreq
           in: query
@@ -978,7 +978,7 @@ paths:
       tags:
         - Fundamentals
       summary: Meta Data
-      operationId: Meta
+      operationId: FundamentalsMeta
       description: |-
         This endpoint can be used to check which tickers have been updated with new fundamental data.
         
@@ -1398,7 +1398,7 @@ paths:
     get:
       summary: Intraday Prices Endpoint
       description: To request historical intraday prices for a forex pair, use the following REST endpoint.
-      operationId: IntradayPrices
+      operationId: FxIntradayPrices
       tags:
         - Forex
       parameters:
@@ -1465,7 +1465,7 @@ paths:
   /tiingo/crypto/prices:
     get:
       summary: Intraday Data for Current or Last Business Day
-      operationId: Prices
+      operationId: CryptoIntradayPrices
       description: |-
         Tiingo connects to a variety of cryptocurrency exchanges to create a consolidated top-of-book feed.
 
@@ -1564,7 +1564,7 @@ paths:
   /tiingo/crypto:
     get:
       summary: Meta Endpoint
-      operationId: Meta
+      operationId: CryptoMeta
       description: To request meta data for a cryptocurrency, use the following REST endpoints.
       tags:
         - Crypto
