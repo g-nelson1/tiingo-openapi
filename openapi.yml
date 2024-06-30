@@ -241,9 +241,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MetaDataResponse'
-      requestBody:
-        content:
-          application/json: { }
       security:
         - apiKeyQuery: [ ]
         - apiKeyHeader: [ ]
@@ -492,9 +489,6 @@ paths:
       operationId: Distributions
       description: |-
         Use this endpoint to get past, present, and future dividends and distributions. This endpoint will return detailed dividend and distribution data for a given stock, ETF, or Mutual Fund. You will also notice a distribution frequency, this is the declared frequency of the distribution that you can use to customize your calculations to determine yield.
-      requestBody:
-        content:
-          application/json: { }
       parameters:
         - name: exDate
           in: query
@@ -548,9 +542,6 @@ paths:
       operationId: DistributionsByTicker
       description: |-
         This endpoint is similar to the batch endpoint, but allows you to specify a specific ticker to limit the query and also provide historical distribution timeseries data for a ticker as well. Stocks, ETFs, and Mutual Funds are supported.
-      requestBody:
-        content:
-          application/json: { }
       parameters:
         - name: ticker
           in: path
