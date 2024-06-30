@@ -1678,22 +1678,22 @@ components:
           example: "2019-01-02T00:00:00.000Z"
         open:
           type: number
-          format: float
+          format: double
           description: The opening price for the asset on the given date.
           example: 154.89
         high:
           type: number
-          format: float
+          format: double
           description: The high price for the asset on the given date.
           example: 158.85
         low:
           type: number
-          format: float
+          format: double
           description: The low price for the asset on the given date.
           example: 154.23
         close:
           type: number
-          format: float
+          format: double
           description: The closing price for the asset on the given date.
           example: 157.92
         volume:
@@ -1703,22 +1703,22 @@ components:
           example: 37039737
         adjOpen:
           type: number
-          format: float
+          format: double
           description: The adjusted opening price for the asset on the given date.
           example: 154.89
         adjHigh:
           type: number
-          format: float
+          format: double
           description: The adjusted high price for the asset on the given date.
           example: 158.85
         adjLow:
           type: number
-          format: float
+          format: double
           description: The adjusted low price for the asset on the given date.
           example: 154.23
         adjClose:
           type: number
-          format: float
+          format: double
           description: The adjusted closing price for the asset on the given date.
           example: 157.92
         adjVolume:
@@ -1728,12 +1728,12 @@ components:
           example: 37039737
         divCash:
           type: number
-          format: float
+          format: double
           description: The dividend paid out on "date" (note that "date" will be the "exDate" for the dividend).
           example: 0.0
         splitFactor:
           type: number
-          format: float
+          format: double
           description: The factor used to adjust prices when a company splits, reverse splits, or pays a distribution.
           example: 1.0
 
@@ -1869,7 +1869,7 @@ components:
           example: "2023-09-08T04:00:00.000Z"
         distribution:
           type: number
-          format: float
+          format: double
           description: The total distribution for the given date.
           example: 0.08
         distributionFreqency:
@@ -1900,7 +1900,7 @@ components:
           example: "2023-08-18T00:00:00.000Z"
         trailingDiv1Y:
           type: number
-          format: float
+          format: double
           description: The trailing distribution yield for the asset based on the previous 1 year of distributions.
           example: 0.0053871282
 
@@ -1922,17 +1922,17 @@ components:
           example: "2023-09-25T00:00:00.000Z"
         splitFrom:
           type: number
-          format: float
+          format: double
           description: The prior split ratio.
           example: 1.0
         splitTo:
           type: number
-          format: float
+          format: double
           description: The new split ratio, i.e. how many shares of "splitTo" are given for each share of "splitFrom".
           example: 2.0
         splitFactor:
           type: number
-          format: float
+          format: double
           description: |-
             The ratio of splitTo from splitFrom. In other words: splitFactor = splitTo/splitFrom This ratio is helpful in calculating split price adjustments.
           example: 2.0
@@ -2018,7 +2018,7 @@ components:
           example: "peRatio"
         value:
           type: number
-          format: float
+          format: double
           description: The value of the field corresponding to the dataCode.
           example: 15.5
 
@@ -2032,27 +2032,27 @@ components:
           example: "2023-08-18T00:00:00.000Z"
         marketCap:
           type: number
-          format: float
+          format: double
           description: The value of the field corresponding to the market capitalization.
           example: 1000000000
         enterpriseVal:
           type: number
-          format: float
+          format: double
           description: The value of the field corresponding to the enterprise value.
           example: 1200000000
         peRatio:
           type: number
-          format: float
+          format: double
           description: The value of the field corresponding to the price/earnings ratio.
           example: 25.5
         pbRatio:
           type: number
-          format: float
+          format: double
           description: The value of the field corresponding to the price/book ratio.
           example: 3.0
         trailingPEG1Y:
           type: number
-          format: float
+          format: double
           description: The value of the field corresponding to the trailing 1 year PEG Ratio.
           example: 1.5
 
@@ -2183,7 +2183,7 @@ components:
           example: "2019-01-30T10:33:34.176037579-05:00"
         last:
           type: number
-          format: float
+          format: double
           description: Last is the last trade that was executed on IEX.
           example: 162.37
         lastSize:
@@ -2193,7 +2193,7 @@ components:
           example: 100
         tngoLast:
           type: number
-          format: float
+          format: double
           description: |-
             Tiingo Last is either the last price or mid price. The mid price is only used if our algo determines it is a good proxy for the last price. 
             So if the spread is considered wide by our algo, we do not use it. 
@@ -2202,27 +2202,27 @@ components:
           example: 162.33
         prevClose:
           type: number
-          format: float
+          format: double
           description: Previous day's closing price of the security. __This can be from any of the exchanges, NYSE, NASDAQ, IEX, etc.__
           example: 154.68
         open:
           type: number
-          format: float
+          format: double
           description: The opening price of the asset on the current day. __This value is calculated by Tiingo and not provided by IEX.__
           example: 161.83
         high:
           type: number
-          format: float
+          format: double
           description: The high price of the asset on the current day. __This value is calculated by Tiingo and not provided by IEX.__
           example: 163.25
         low:
           type: number
-          format: float
+          format: double
           description: The low price of the asset on the current day. __This value is calculated by Tiingo and not provided by IEX.__
           example: 160.38
         mid:
           type: number
-          format: float
+          format: double
           description: |-
             The mid price of the current timestamp when both "bidPrice" and "askPrice" are not-null. 
             In mathematical terms: mid = (bidPrice + askPrice) / 2.0 
@@ -2237,22 +2237,22 @@ components:
           example: 0
         bidSize:
           type: number
-          format: float
+          format: double
           description: The amount of shares at the bid price.
           example: 100
         bidPrice:
           type: number
-          format: float
+          format: double
           description: The current bid price.
           example: 162.34
         askSize:
           type: number
-          format: float
+          format: double
           description: The amount of shares at the ask price.
           example: 100
         askPrice:
           type: number
-          format: float
+          format: double
           description: The current ask price.
           example: 163.0
 
@@ -2266,22 +2266,22 @@ components:
           example: "2019-01-02T14:30:00.000Z"
         open:
           type: number
-          format: float
+          format: double
           description: The opening price for the asset on the given date.
           example: 154.74
         high:
           type: number
-          format: float
+          format: double
           description: The high price for the asset on the given date.
           example: 155.52
         low:
           type: number
-          format: float
+          format: double
           description: The low price for the asset on the given date.
           example: 154.58
         close:
           type: number
-          format: float
+          format: double
           description: The closing price for the asset on the given date.
           example: 154.76
         volume:
@@ -2304,29 +2304,29 @@ components:
           description: The timestamp the data was last refresh on.
         midPrice:
           type: number
-          format: float
+          format: double
           example: 0.696375
           description: |-
             The mid price of the current timestamp when both "bidPrice" and "askPrice" are not-null. In mathematical terms:
             midPrice = (bidPrice + askPrice)/2.0
         bidSize:
           type: number
-          format: float
+          format: double
           example: 100000.0
           description: The amount of units at the bid price.
         bidPrice:
           type: number
-          format: float
+          format: double
           example: 0.6963
           description: The current bid price.
         askSize:
           type: number
-          format: float
+          format: double
           example: 1200000.0
           description: The amount of units at the ask price.
         askPrice:
           type: number
-          format: float
+          format: double
           example: 0.69645
           description: The current ask price.
     HistoricalPrices:
@@ -2343,22 +2343,22 @@ components:
           description: Ticker related to the asset.
         open:
           type: number
-          format: float
+          format: double
           example: 0.695
           description: The opening price for the asset on the given date.
         high:
           type: number
-          format: float
+          format: double
           example: 0.700
           description: The high price for the asset on the given date.
         low:
           type: number
-          format: float
+          format: double
           example: 0.694
           description: The low price for the asset on the given date.
         close:
           type: number
-          format: float
+          format: double
           example: 0.698
           description: The closing price for the asset on the given date.
 
@@ -2396,22 +2396,22 @@ components:
           example: "2019-01-02T00:00:00+00:00"
         open:
           type: number
-          format: float
+          format: double
           description: The opening price for the asset on the given date.
           example: 3914.749407813885
         high:
           type: number
-          format: float
+          format: double
           description: The high price for the asset on the given date.
           example: 3942.374263716895
         low:
           type: number
-          format: float
+          format: double
           description: The low price for the asset on the given date.
           example: 3846.1755315352952
         close:
           type: number
-          format: float
+          format: double
           description: The closing price for the asset on the given date.
           example: 3849.1217299601617
         tradesDone:
@@ -2421,12 +2421,12 @@ components:
           example: 756
         volume:
           type: number
-          format: float
+          format: double
           description: The volume done for the asset on the specific date in the base currency.
           example: 339.68131616889997
         volumeNotional:
           type: number
-          format: float
+          format: double
           description: The volume done for the asset on the specific date in the quote currency.
           example: 1307474.735327181
 
@@ -2475,7 +2475,7 @@ components:
           example: "INVESTOR SHARES"
         netExpense:
           type: number
-          format: float
+          format: double
           description: The top-level net expense ratio for the fund.
           example: 0.0014
         otherShareClasses:
@@ -2501,7 +2501,7 @@ components:
           example: "ADMIRAL SHARES"
         netExpense:
           type: number
-          format: float
+          format: double
           description: The top-level net expense ratio for the fund.
           example: 0.0004
 
@@ -2515,102 +2515,102 @@ components:
           example: "2023-01-01"
         netExpense:
           type: number
-          format: float
+          format: double
           description: Fund's net expense ratio, or the net expenses related to the fund.
           example: 0.04
         grossExpense:
           type: number
-          format: float
+          format: double
           description: Fund's gross expense ratio, or the expenses related to running the fund.
           example: 0.05
         managementFee:
           type: number
-          format: float
+          format: double
           description: Fund's management fee, or the fees paid to the manager and/or advisors.
           example: 0.02
         12b1:
           type: number
-          format: float
+          format: double
           description: Fund's fee related to marketing expenses.
           example: 0.01
         non12b1:
           type: number
-          format: float
+          format: double
           description: Fund's fee related to distribution and similar non 12b-1 fees.
           example: 0.01
         otherExpenses:
           type: number
-          format: float
+          format: double
           description: Fund's other expenses, or expenses related to legal, administrative, custodial, etc.
           example: 0.01
         acquiredFundFees:
           type: number
-          format: float
+          format: double
           description: Fund's acquired fund fees, or expenses related to underlying businesses or funds.
           example: 0.01
         feeWaiver:
           type: number
-          format: float
+          format: double
           description: Fund's fee waiver, or discount on fees.
           example: 0.01
         exchangeFeeUSD:
           type: number
-          format: float
+          format: double
           description: Fund's exchange fee if charged in USD, or expenses related to exchanging or transferring funds to another fund in the fund's family.
           example: 25.00
         exchangeFeePercent:
           type: number
-          format: float
+          format: double
           description: Fund's exchange fee if charged as a percentage, or expenses related to exchanging or transferring funds to another fund in the fund's family.
           example: 0.02
         frontLoad:
           type: number
-          format: float
+          format: double
           description: Fund's front load fee, or the upfront fee charged when investing in the fund.
           example: 0.05
         backLoad:
           type: number
-          format: float
+          format: double
           description: Fund's back load fee, or the back-end fee charged when redeeming from the fund.
           example: 0.04
         dividendLoad:
           type: number
-          format: float
+          format: double
           description: Dividend load fee, or charges on reinvested dividends.
           example: 0.02
         shareholderFee:
           type: number
-          format: float
+          format: double
           description: Fund's shareholder fees, or the potential fees when buying/selling a fund.
           example: 0.01
         accountFeeUSD:
           type: number
-          format: float
+          format: double
           description: Fund's account fees if charged in USD, or the fee required to maintain your account in USD.
           example: 15.00
         accountFeePercent:
           type: number
-          format: float
+          format: double
           description: Fund's account fees if charged as a percentage, or the fee required to maintain your account in percentage terms.
           example: 0.01
         redemptionFeeUSD:
           type: number
-          format: float
+          format: double
           description: Fund's redemption fees if charged in USD, or the fee charged if funds are redeemed early (as defined by the fund company).
           example: 50.00
         redemptionFeePercent:
           type: number
-          format: float
+          format: double
           description: Fund's redemption fees as a percentage, or the fee charged if funds are redeemed early (as defined by the fund company).
           example: 0.01
         portfolioTurnover:
           type: number
-          format: float
+          format: double
           description: Portfolio turnover.
           example: 0.5
         miscFees:
           type: number
-          format: float
+          format: double
           description: Fund's miscellaneous fees.
           example: 0.01
         customFees:
@@ -2628,7 +2628,7 @@ components:
           example: "Wire Fee"
         value:
           type: number
-          format: float
+          format: double
           description: Value of the custom fee field.
           example: 20.0
         units:
