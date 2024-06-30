@@ -122,7 +122,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
             example: "2012-01-01"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
@@ -130,7 +130,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
             example: "2016-01-01"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: resampleFreq
@@ -301,7 +301,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: |-
             If startDate or endDate is not null, historical data will be queried. This filter limits news stories to on or later than the publishedDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
@@ -309,7 +309,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: |-
             If startDate or endDate is not null, historical data will be queried. This filter limits news stories to on or less than the publishedDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: limit
@@ -471,7 +471,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits distributions that have an ex-date on the date passed. Parameter must be in YYYY-MM-DD format.
         - name: format
           in: query
@@ -526,14 +526,14 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits distributions that have an ex-date >= on the date passed. Parameter must be in YYYY-MM-DD format.
         - name: endExDate
           in: query
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits distributions that have an ex-date <= on the date passed. Parameter must be in YYYY-MM-DD format.
         - name: format
           in: query
@@ -630,7 +630,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits splits that have an ex-date on the date passed. Parameter must be in YYYY-MM-DD format.
         - name: format
           in: query
@@ -685,14 +685,14 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits splits that have an ex-date >= on the date passed. Parameter must be in YYYY-MM-DD format.
         - name: endExDate
           in: query
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits splits that have an ex-date <= on the date passed. Parameter must be in YYYY-MM-DD format.
         - name: format
           in: query
@@ -801,14 +801,14 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
           in: query
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: sort
           in: query
@@ -863,14 +863,14 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
           in: query
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: sort
           in: query
@@ -1151,7 +1151,7 @@ paths:
           in: query
           schema:
             type: string
-            format: date
+            format: date-time
           description: |-
             If startDate or endDate is not null, historical data will be queried. 
             This filter limits metrics to on or after the startDate (>=). 
@@ -1160,7 +1160,7 @@ paths:
           in: query
           schema:
             type: string
-            format: date
+            format: date-time
           description: |-
             If startDate or endDate is not null, historical data will be queried. 
             This filter limits metrics to on or before the endDate (<=). 
@@ -1343,7 +1343,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
             example: "2019-06-30"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
@@ -1351,7 +1351,7 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
             example: "2019-07-07"
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: resampleFreq
@@ -1438,14 +1438,14 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or later than the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
           in: query
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or less than the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: resampleFreq
           in: query
@@ -1592,14 +1592,14 @@ paths:
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or after the startDate (>=). Parameter must be in YYYY-MM-DD format.
         - name: endDate
           in: query
           required: false
           schema:
             type: string
-            format: date
+            format: date-time
           description: If startDate or endDate is not null, historical data will be queried. This filter limits metrics to on or before the endDate (<=). Parameter must be in YYYY-MM-DD format.
         - name: resampleFreq
           in: query
@@ -1654,12 +1654,12 @@ components:
           example: "NASDAQ"
         startDate:
           type: string
-          format: date
+          format: date-time
           description: The earliest date we have price data available for the asset. When null it means no price data available for the given asset.
           example: "2019-01-25"
         endDate:
           type: string
-          format: date
+          format: date-time
           description: The latest date we have price data available for the asset. When null it means no price data available for the given asset.
           example: "2019-01-25"
         description:
@@ -1673,7 +1673,7 @@ components:
       properties:
         date:
           type: string
-          format: date
+          format: date-time
           description: The date this data pertains to.
           example: "2019-01-02T00:00:00.000Z"
         open:
@@ -1817,12 +1817,12 @@ components:
           example: "incremental"
         startDate:
           type: string
-          format: date
+          format: date-time
           description: The start date that was used to select the News objects to generate the batch file. This is inclusive. publishedDate >= startDate.
           example: "2019-01-28T05:00:00Z"
         endDate:
           type: string
-          format: date
+          format: date-time
           description: The end date that was used to select the News objects to generate the batch file. This is not inclusive. publishedDate < endDate.
           example: "2019-01-29T05:00:00Z"
         fileSizeCompressed:
@@ -2510,7 +2510,7 @@ components:
       properties:
         prospectusDate:
           type: string
-          format: date
+          format: date-time
           description: The prospectus date when the corresponding fund expense data was published.
           example: "2023-01-01"
         netExpense:
