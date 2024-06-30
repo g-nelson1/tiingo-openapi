@@ -72,7 +72,7 @@ paths:
         
         To use the REST API, you must let our server know you have an account. You can do this by passing your API TOKEN.
 
-        Pass the token directly within the request URL.
+        Pass the token directly within the request URL or in the request headers.
       parameters:
         - name: format
           in: query
@@ -94,39 +94,6 @@ paths:
                 $ref: '#/components/schemas/SuccessResponse'
       security:
         - apiKeyQuery: [ ]
-
-  /api/test/header:
-    get:
-      tags:
-        - Connecting
-      summary: Test API connection with token in header
-      operationId: TestInHeader
-      description: |-
-        Using our REST API is super easy to do. Just use your favorite programming language's web request package and the data will be returned via JSON or CSV.
-        
-        To use the REST API, you must let our server know you have an account. You can do this by passing your API TOKEN.
-
-        Pass the token in your request headers.
-      parameters:
-        - name: format
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [ csv, json ]
-            default: json
-          description: Sets the response format of the returned data. Acceptable values are "csv" and "json". Defaults to JSON.
-      responses:
-        '200':
-          description: Request was successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-            text/csv:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-      security:
         - apiKeyHeader: [ ]
 
   /tiingo/daily/{ticker}/prices:
