@@ -66,7 +66,7 @@ paths:
       tags:
         - Connecting
       summary: Test API connection with token in URL
-      operationId: TestInUrl
+      operationId: Test
       description: |-
         Using our REST API is super easy to do. Just use your favorite programming language's web request package and the data will be returned via JSON or CSV.
         
